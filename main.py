@@ -1,7 +1,9 @@
 from tkinter import *
+from tkinter import ttk
 from tkinter import messagebox
 from configparser import ConfigParser
-import requests
+from pip._vendor import requests
+import json
 
 url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid={}'
 
@@ -18,11 +20,12 @@ def get_weather(city):
         city = json['name']
         country = json['sys']['country']
         tempKelvin = json['main']['temp']
-        tempCelsius = tempKelvin - 273.15
+        tempCelsius = (tempKelvin - 273.15 )
         tempFahrenheit = (tempKelvin - 273.15) * 9 / 5 + 32
         icon = json['weather'][0]['icon']
         weather = json['weather'][0]['main']
-        final = (city, country, tempCelsius, tempFahrenheit, icon, weather)
+        wind = json['wind']
+        final = (city, country, tempCelsius, tempFahrenheit, icon, weather, wind)
         return final
     else:
         return  None
@@ -34,9 +37,11 @@ def search():
     weather = get_weather(city)
     if weather:
         locationLabel['text'] = '{},{}'.format(weather[0], weather[1])
-        image['bitmap'] = 'weather_icons/{}.png'.format(weather[4])
-        tempLabel['text'] = '{:.2f°C},{:.2f°F}'.format(weather[2], weather[3])
+        image['file'] = 'weather_icons/{}.png'.format(weather[4])
+        tempLabelC['text'] = '{:.2f}°C'.format(weather[2])
+        tempLabelF['text'] = '{:.2f}°F'.format(weather[3])
         weatherLabel['text'] = weather[5]
+        windLabel['text'] = weather[6]
     else:
         messagebox.showerror('Error', 'Cannot Find City').format(city)
 
@@ -45,13 +50,13 @@ def search():
 
 root = Tk()
 root.title("Weather App")
-root.geometry("700x350")
+root.geometry("350x350")
 
 
 
 cityText = StringVar()
-cityEntry = Entry(root, textvariable = cityText)
-cityEntry.pack()
+cityEntry = Entry(root, textvariable=cityText)
+cityEntry.pack(pady=10)
 
 searchButton = Button(root, text="Search Weather", width=12, command=search)
 searchButton.pack()
@@ -59,13 +64,21 @@ searchButton.pack()
 locationLabel = Label(root, text='', font=('bold', 20))
 locationLabel.pack()
 
-image = Label(root, bitmap='')
-image.pack()
+image = PhotoImage(file='')
 
-tempLabel = Label(root, text='')
-tempLabel.pack()
+imageLabel = Label(root, image=image, background="gray")
+imageLabel.pack()
+
+tempLabelC = Label(root, text='', font=20)
+tempLabelC.pack()
+
+tempLabelF = Label(root, text='', font=20)
+tempLabelF.pack()
 
 weatherLabel = Label(root, text='')
 weatherLabel.pack()
+
+windLabel = Label(root, text='')
+windLabel.pack()
 
 root.mainloop()
